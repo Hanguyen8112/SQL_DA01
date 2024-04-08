@@ -11,3 +11,13 @@ Sum(CASE
   End) as mobile_views
  FROM viewership
 ---Ex2
+Select 
+X,
+Y,
+Z,
+Case
+when (X+Y)>Z and (X+Z)>Y and (Y+Z)>X then 'Yes'
+Else 'No'
+End as triangle
+from Triangle
+---Ex3
