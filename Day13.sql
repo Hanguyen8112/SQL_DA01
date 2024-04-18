@@ -24,4 +24,65 @@ Group by  B.product
 order by sum(b.spend) DESC
 limit 2) -- subquery lọc 2 sản phẩm
 Group by a.category,a.product ORDER BY a.category, a.product DESC
----
+
+  --- Ex3 : không thấy dữ liệu
+SELECT COUNT(policy_holder_id)
+FROM (
+  SELECT
+    policy_holder_id,
+    COUNT(case_id) AS count_call
+  FROM callers
+  GROUP BY policy_holder_id
+  HAVING COUNT(case_id) >= 3
+) AS Call;
+---Ex4
+SELECT
+p.page_id
+FROM pages as p left JOIN page_likes as pl
+on p.page_id	= pl.page_id
+GROUP BY p.page_id
+having count(pl.user_id)=0
+
+---Ex5
+SELECT
+EXTRACT(month from event_date) as month,
+Count(DISTINCT (user_id))
+from user_actions
+where EXTRACT(month from event_date)= 7
+and User_id in
+---list active tháng 6
+(select 
+User_id 
+from user_actions
+where EXTRACT(month from event_date)=6)
+GROUP BY month
+
+---Ex6
+select 
+DATE_FORMAT(trans_date,'%Y-%m') as month,
+country,
+Count(id ) as trans_count,
+sum(case when state = 'approved' then 1
+            else 0 end) as approved_count,
+sum(amount) as trans_total_amount,
+sum((case when state = 'approved' then 1
+            else 0 end)*amount ) as approved_total_amount
+from Transactions
+group by month,country;
+
+---Ex7
+Select 
+a.product_id,
+a.year as first_year ,
+a.quantity,
+a.price
+from Sales as a
+inner join (Select 
+                product_id,
+                min(Year) as minyear
+                from Sales
+                group by product_id) as b
+on a.product_id=b.product_id
+and a.year= b.minyear
+
+
