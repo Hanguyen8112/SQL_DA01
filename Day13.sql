@@ -116,14 +116,45 @@ Group by company_id
 having Count(description) >1) as duplicate
 
 ---Ex11
-select
-a.user_id,
-Count(a.movie_id),
-b.name
-from
-MovieRating a
-Left join Users b
-on a.user_id=b.user_id
-group by a.user_id, b.name
-Order by Count(a.movie_id), length(name)
+with 
+  user_rate as (select
+  a.user_id,
+  Count(a.movie_id),
+  b.name as results
+  from
+  MovieRating a
+  Left join Users b
+  on a.user_id=b.user_id
+  group by a.user_id, b.name
+  Order by Count(a.movie_id) desc, b.name
+  limit 1),
 
+  Movie_rate as (Select 
+  c.movie_id,
+  avg (c.rating),
+  d.title as results
+  from MovieRating c
+  left join Movies d
+  on c.movie_id = d.movie_id
+  where c.created_at > '2020-01-31' and c.created_at < '2020-03-01'
+  group by movie_id
+  order by avg (c.rating) desc , d.title
+  limit 1)
+
+Select results from user_rate
+Union all
+Select results from Movie_rate
+
+--- Ex12
+
+with allid as
+(select requester_id id from RequestAccepted
+union all
+select accepter_id id from RequestAccepted)
+
+select 
+id, 
+count(id) num  
+from allid group 
+by id order by count(id) desc 
+limit 1
