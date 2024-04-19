@@ -84,5 +84,46 @@ inner join (Select
                 group by product_id) as b
 on a.product_id=b.product_id
 and a.year= b.minyear
+---Ex8
+Select 
+    customer_id
+from Customer
+    group by customer_id
+    having Count(distinct(product_key)) = (Select 
+                                            count(product_key) 
+                                            from Product)
 
+---Ex9
+Select a.employee_id
+from Employees a
+left join Employees b
+on a.manager_id = b.employee_id
+where a.manager_id is not null
+and b.name is null
+and a.employee_id in (Select employee_id from Employees
+where salary < 30000)
+order by a.employee_id
+
+---Ex10 - bài này bị trùng link??
+Select 
+COUNT(company_id)
+from
+(SELECT 
+ company_id,
+ Count(description)
+FROM job_listings
+Group by company_id
+having Count(description) >1) as duplicate
+
+---Ex11
+select
+a.user_id,
+Count(a.movie_id),
+b.name
+from
+MovieRating a
+Left join Users b
+on a.user_id=b.user_id
+group by a.user_id, b.name
+Order by Count(a.movie_id), length(name)
 
