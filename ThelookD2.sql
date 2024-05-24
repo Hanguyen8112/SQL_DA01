@@ -1,3 +1,4 @@
+----P1
 with cte as (
 select
   EXTRACT(YEAR FROM o.created_at) AS year,
@@ -28,3 +29,51 @@ SELECT
   Total_profit,
   Profit_to_cost_ratio
 From cte
+---- P2
+/* 
+- Tìm ngày mua hàng đầu tiên 
+- Tìm index=tháng (ngày mua hàng - ngày đầu tiên) + 1
+- Count số lượng khách hàng hoặc tổng doanh thu tại mỗi cohort_Date và index tương ứng
+- Pivot table
+*/
+
+with month_diff as 
+/*tìm index*/
+(SELECT
+  o.user_id,
+  o.order_id,
+  o.created_at,
+  f.first_order_date,
+  f.first_month,
+  (extract(month from  o.created_at)-extract(month from  f.first_order_date))+(extract(year from  o.created_at)-extract(year from  f.first_order_date))*12+1 as index_month
+from bigquery-public-data.thelook_ecommerce.orders o
+left join
+/*tìm ngày mua đầu tiên*/
+(SELECT
+    user_id,
+		MIN(created_at) AS first_order_date,
+		FORMAT_TIMESTAMP('%Y-%m', MIN(created_at)) AS first_month
+  FROM
+      bigquery-public-data.thelook_ecommerce.orders
+  Group by user_id) f
+on o.user_id = f.user_id),
+
+Cohort_index as 
+(select
+first_month,
+index_month,
+Count(distinct(user_id)) as No_customers
+from month_diff
+group by first_month, index_month
+order by first_month)
+
+SELECT
+first_month,
+sum(Case when index_month = 1 then No_customers else 0 end) as M1,
+sum(Case when index_month = 2 then No_customers else 0 end) as M2,
+sum(Case when index_month = 3 then No_customers else 0 end) as M3,
+sum(Case when index_month = 4 then No_customers else 0 end) as M4
+From Cohort_index
+group by first_month
+order by first_month
+
